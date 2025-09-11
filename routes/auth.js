@@ -38,12 +38,18 @@ router.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
-    res.json({ token, user: { id: user._id, email: user.email, phone: user.phone } });
+    res.json({
+      token, // frontend/Next.js API will catch this
+      user: { id: user._id, email: user.email, phone: user.phone },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 module.exports = router;
