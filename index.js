@@ -1,20 +1,38 @@
-// index.js (rename later to lib/mongo.js for clarity)
+const express = require("express");
 const mongoose = require("mongoose");
-require("dotenv").config();
+const dotenv = require("dotenv");
+const cors = require("cors");   // <-- add this
 
-let isConnected = false;
+dotenv.config();
 
-async function connectDB() {
-  if (isConnected) return;
+const app = express();
+app.use(express.json());
 
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    isConnected = true;
+// ✅ Enable CORS for frontend
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+
+// Import routes
+const roomsRoutes = require("./routes/rooms");
+const diningRoutes = require("./routes/diningOption");
+const testimonialRoutes = require("./routes/testimonials");
+const amenityRoutes = require("./routes/amenities");
+const galleryRoutes = require("./routes/gallery");
+const authRoutes = require("./routes/auth");
+const bookingRoutes = require("./routes/bookings");
+
+app.use("/api/auth", authRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api", roomsRoutes);
+app.use("/api/dining-options", diningRoutes);
+app.use("/api/testimonials", testimonialRoutes);
+app.use("/api/amenities", amenityRoutes);
+app.use("/api/gallery-images", galleryRoutes);
+
+// Connect DB + Start server
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
     console.log("✅ MongoDB Connected");
-  } catch (err) {
-    console.error("❌ MongoDB connection failed:", err);
-    throw err;
-  }
-}
-
-module.exports = { connectDB };
+    app.listen(5000, () => console.log("Server running on port 5000"));
+  })
+  .catch((err) => console.error(err));
