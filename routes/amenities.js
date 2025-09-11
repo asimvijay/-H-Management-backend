@@ -1,28 +1,27 @@
-const express = require("express");
-const router = express.Router();
-const Amenity = require("../models/Amenity");
+import { connectDB } from "../lib/mongo";  // <- your DB helper
+import Amenity from "../models/Amenity";
 
-const handleError = (res, error, status = 500) => {
-  console.error(error);
-  res.status(status).json({ error: error.message });
-};
+export default async function handler(req, res) {
+  await connectDB();
 
-router.get("/", async (req, res) => {
   try {
-    res.json(await Amenity.find());
-  } catch (error) {
-    handleError(res, error);
-  }
-});
+    if (req.method === "GET") {
+      // Get all amenities
+      const amenities = await Amenity.find();
+      return res.status(200).json(amenities);
+    }
 
-router.post("/", async (req, res) => {
-  try {
-    const doc = new Amenity(req.body);
-    await doc.save();
-    res.status(201).json(doc);
-  } catch (error) {
-    handleError(res, error, 400);
-  }
-});
+    if (req.method === "POST") {
+      // Create a new amenity
+      const amenity = new Amenity(req.body);
+      await amenity.save();
+      return res.status(201).json(amenity);
+    }
 
-module.exports = router;
+    // If method not supported
+    return res.status(405).json({ error: "Method not allowed" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: error.message });
+  }
+}

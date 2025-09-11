@@ -1,28 +1,29 @@
-const express = require("express");
-const router = express.Router();
-const DiningOption = require("../models/DiningOption");
+import { connectDB } from "../lib/mongo";
+import DiningOption from "../models/DiningOption";
 
-const handleError = (res, error, status = 500) => {
-  console.error(error);
-  res.status(status).json({ error: error.message });
-};
+export default async function handler(req, res) {
+  await connectDB();
 
-router.get("/", async (req, res) => {
-  try {
-    res.json(await DiningOption.find());
-  } catch (error) {
-    handleError(res, error);
+  if (req.method === "GET") {
+    try {
+      const diningOptions = await DiningOption.find();
+      return res.json(diningOptions);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: error.message });
+    }
   }
-});
 
-router.post("/", async (req, res) => {
-  try {
-    const doc = new DiningOption(req.body);
-    await doc.save();
-    res.status(201).json(doc);
-  } catch (error) {
-    handleError(res, error, 400);
+  if (req.method === "POST") {
+    try {
+      const doc = new DiningOption(req.body);
+      await doc.save();
+      return res.status(201).json(doc);
+    } catch (error) {
+      console.error(error);
+      return res.status(400).json({ error: error.message });
+    }
   }
-});
 
-module.exports = router;
+  return res.status(405).json({ error: "Method not allowed" });
+}

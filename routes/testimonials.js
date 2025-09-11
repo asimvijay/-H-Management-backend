@@ -1,28 +1,28 @@
-const express = require("express");
-const router = express.Router();
-const Testimonial = require("../models/Testimonial");
+import { connectDB } from "../lib/mongo";
+import Testimonial from "../models/Testimonial";
 
-const handleError = (res, error, status = 500) => {
-  console.error(error);
-  res.status(status).json({ error: error.message });
-};
+export default async function handler(req, res) {
+  await connectDB();
 
-router.get("/", async (req, res) => {
-  try {
-    res.json(await Testimonial.find());
-  } catch (error) {
-    handleError(res, error);
+  if (req.method === "GET") {
+    try {
+      const testimonials = await Testimonial.find();
+      return res.json(testimonials);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: error.message });
+    }
   }
-});
 
-router.post("/", async (req, res) => {
-  try {
-    const doc = new Testimonial(req.body);
-    await doc.save();
-    res.status(201).json(doc);
-  } catch (error) {
-    handleError(res, error, 400);
+  if (req.method === "POST") {
+    try {
+      const testimonial = new Testimonial(req.body);
+      await testimonial.save();
+      return res.status(201).json(testimonial);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
   }
-});
 
-module.exports = router;
+  return res.status(405).json({ error: "Method not allowed" });
+}
