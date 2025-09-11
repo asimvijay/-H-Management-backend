@@ -17,7 +17,11 @@ const diningRoutes = require("./routes/diningOption");
 const testimonialRoutes = require("./routes/testimonials");
 const amenityRoutes = require("./routes/amenities");
 const galleryRoutes = require("./routes/gallery");
+const authRoutes = require("./routes/auth");
+const bookingRoutes = require("./routes/bookings");
 
+app.use("/api/auth", authRoutes);
+app.use("/api/bookings", bookingRoutes);
 app.use("/api", roomsRoutes);
 app.use("/api/dining-options", diningRoutes);
 app.use("/api/testimonials", testimonialRoutes);
