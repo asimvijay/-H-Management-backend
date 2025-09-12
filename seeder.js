@@ -1,8 +1,9 @@
+
 require("dotenv").config();
 const mongoose = require("mongoose");
 
-const rooms = require("./data/rooms");
-const roomTypes = require("./data/roomType");
+const roomsData = require("./data/rooms");
+const roomTypesData = require("./data/roomType");
 const diningOptions = require("./data/DiningOption");
 const testimonials = require("./data/Testimonial");
 const amenities = require("./data/Amenities");
@@ -30,12 +31,40 @@ async function seedData() {
       Amenity.deleteMany(),
       GalleryImage.deleteMany(),
     ]);
-
     console.log("🗑️ Old data removed");
 
-    // Insert new data
-    await Room.insertMany(rooms);
-    await RoomType.insertMany(roomTypes);
+    // Insert RoomType data first
+    const insertedRoomTypes = await RoomType.insertMany(roomTypesData);
+    console.log(`🌱 Inserted ${insertedRoomTypes.length} room types`);
+
+    // Create a map of RoomType names to their ObjectIds
+    const roomTypeMap = new Map(
+      insertedRoomTypes.map((rt) => [rt.name, rt._id])
+    );
+
+    // Transform roomsData to match Room schema
+    const transformedRooms = roomsData.map((room) => {
+      const roomTypeId = roomTypeMap.get(room.type);
+      if (!roomTypeId) {
+        throw new Error(`RoomType "${room.type}" not found for room ID ${room.id_no}`);
+      }
+      return {
+        id_no: room.id_no,
+        roomType: roomTypeId,
+        status: room.status,
+        price: room.price, // Already a string, matches schema
+        capacity: room.capacity,
+        amenities: room.amenities,
+        floor: room.floor,
+        images: room.images,
+      };
+    });
+
+    // Insert transformed Room data
+    await Room.insertMany(transformedRooms);
+    console.log(`🌱 Inserted ${transformedRooms.length} rooms`);
+
+    // Insert other data
     await DiningOption.insertMany(diningOptions);
     await Testimonial.insertMany(testimonials);
     await Amenity.insertMany(amenities);

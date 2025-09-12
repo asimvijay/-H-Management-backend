@@ -17,6 +17,12 @@ const userSchema = new mongoose.Schema({
     required: true,
   },
   name: String,
+  status: String,        // checked-in / checked-out / reserved
+  room: String,
+  checkIn: Date,
+  checkOut: Date,
+  loyaltyTier: String,   // Bronze / Silver / Gold / Platinum
+  visits: Number,
   createdAt: {
     type: Date,
     default: Date.now,

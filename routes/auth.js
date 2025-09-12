@@ -5,6 +5,24 @@ const User = require("../models/user");
 
 const router = express.Router();
 
+// Middleware to verify JWT token
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Extract token from "Bearer <token>"
+
+  if (!token) {
+    return res.status(401).json({ message: "Authentication token required" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded; // Attach decoded token data to request
+    next();
+  } catch (err) {
+    return res.status(403).json({ message: "Invalid or expired token" });
+  }
+};
+
 // Register
 router.post("/register", async (req, res) => {
   try {
@@ -42,14 +60,30 @@ router.post("/login", async (req, res) => {
       expiresIn: "7d",
     });
 
+    // Convert user document to plain object and exclude password
+    const userData = user.toObject();
+    delete userData.password;
+
+    // Return token and all user data
     res.json({
-      token, // frontend/Next.js API will catch this
-      user: { id: user._id, email: user.email, phone: user.phone },
+      token,
+      user: userData,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// Get authenticated user data
+router.get("/profile", authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;
