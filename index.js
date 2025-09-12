@@ -27,6 +27,11 @@ app.use("/api/dining-options", diningRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/amenities", amenityRoutes);
 app.use("/api/gallery-images", galleryRoutes);
+app.get("/", (req, res) => {
+  console.log("✅ Status 200 sent to client");
+  res.status(200).send({ status: 200, message: "Fake API working fine!" });
+});
+
 
 // Connect DB + Start server
 mongoose
