@@ -19,7 +19,10 @@ const amenityRoutes = require("./routes/amenities");
 const galleryRoutes = require("./routes/gallery");
 const authRoutes = require("./routes/auth");
 const bookingRoutes = require("./routes/bookings");
+const staffRoutes = require("./routes/staff");
 
+// Use routes
+app.use("/api/staff", staffRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api", roomsRoutes);
