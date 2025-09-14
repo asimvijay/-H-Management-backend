@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const Booking = require("../models/booking");
 
 const router = express.Router();
 
@@ -74,13 +75,48 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Get authenticated user data
+// backend/routes/user.js
 router.get("/profile", authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!req.user) {
+      return res.status(401).json({ message: "No authenticated user found" });
+    }
 
-    res.json(user);
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const bookings = await Booking.find({ userId: req.user.id }).populate(
+      "userId",
+      "email phone name"
+    );
+
+    const userData = {
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      status: user.status,
+      checkIn: user.checkIn,
+      checkOut: user.checkOut,
+      room: user.room,
+      loyaltyTier: user.loyaltyTier,
+      visits: user.visits,
+      bookings: bookings.map((booking) => ({
+        id: booking._id,
+        hotelId: booking.hotelId,
+        checkIn: booking.checkin,
+        checkOut: booking.checkout,
+        guests: booking.guests,
+        rooms: booking.rooms,
+        totalPrice: booking.totalPrice,
+        status: booking.status,
+        createdAt: booking.createdAt,
+        guestInfo: booking.guestInfo,
+      })),
+    };
+
+    res.json(userData);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
