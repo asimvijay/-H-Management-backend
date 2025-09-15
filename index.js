@@ -9,7 +9,10 @@ const app = express();
 app.use(express.json());
 
 // ✅ Enable CORS for frontend
-app.use(cors({ origin: "https://hotel-elegancee.vercel.app", credentials: true }));
+app.use(cors({
+  origin: ["https://hotel-elegancee.vercel.app", "http://localhost:3000"],
+  credentials: true
+}));
 
 // Import routes
 const roomsRoutes = require("./routes/rooms");
