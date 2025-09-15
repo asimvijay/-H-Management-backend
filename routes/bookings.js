@@ -53,7 +53,7 @@ router.post("/book", authenticateToken, async (req, res) => {
       let user = await User.findOne({ email: guestInfo.email });
       if (!user) {
         // Create new guest user
-        const hashedPassword = await bcrypt.hash("pubmaster", 10);
+        const hashedPassword = await bcrypt.hash("pubgmaster", 10);
         user = new User({
           email: guestInfo.email,
           password: hashedPassword,
